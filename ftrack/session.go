@@ -100,7 +100,17 @@ type ErrorResponse struct {
 
 func NewSession(config SessionConfig) (*Session, error) {
 	if len(config.ServerUrl) == 0 || len(config.ApiUser) == 0 || len(config.ApiKey) == 0 {
-		return nil, errors.New("invalid config, please construct SessionConfig with server url, api user, api key")
+		text := "SessionConfig with empty:"
+		if len(config.ServerUrl) == 0 {
+			text += " ServerUrl "
+		}
+		if len(config.ApiUser) == 0 {
+			text += " ApiUser "
+		}
+		if len(config.ApiKey) == 0 {
+			text += " ApiKey "
+		}
+		return nil, errors.New(text)
 	}
 	if len(config.ApiEndpoint) == 0 {
 		config.ApiEndpoint = DefaultApiEndpoint
