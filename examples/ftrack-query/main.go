@@ -1,9 +1,3 @@
-# [Ftrack](https://www.ftrack.com) Golang API
-
-Partially ported from [ftrack-javascript-api](https://bitbucket.org/ftrack/ftrack-javascript-api)
-
-##### Basic usage
-```go
 package main
 
 import (
@@ -17,7 +11,7 @@ func main() {
 	apiUser := flag.String("api_user", "", "Ftrack Api User username from enabled user")
 	serverUrl := flag.String("server_url", "", "Ftrack Server Url server url eg https://ftrack.com")
 
-	// Construct Session from command line arguments 
+	// Construct Session from command line arguments
 	session, err := ftrack.NewSession(ftrack.SessionConfig{
 		ApiKey:    *apiKey,
 		ApiUser:   *apiUser,
@@ -27,7 +21,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Query single Task from server     
+	// Query single Task from server
 	result, err := session.Query("select name, parent.project from Task limit 1")
 	if err != nil {
 		log.Fatal(err)
@@ -35,14 +29,3 @@ func main() {
 	task := result.Data[0]
 	log.Println("Task: ", task)
 }
-
-```
-
-#### Roadmap:
-
-- Documentation and examples
-- [EventHub](https://bitbucket.org/ftrack/ftrack-javascript-api/src/master/source/event_hub.js) support
-- Entity type, to allow easy entity manipulations
-- More tests
-
-Contributions and issues welcomed as well as any feedback!  
