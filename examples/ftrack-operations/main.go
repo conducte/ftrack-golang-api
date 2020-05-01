@@ -10,6 +10,7 @@ func main() {
 	apiKey := flag.String("api_key", "", "Ftrack Api Key from Settings -> Api Keys")
 	apiUser := flag.String("api_user", "", "Ftrack Api User username from enabled user")
 	serverUrl := flag.String("server_url", "", "Ftrack Server Url server url eg https://ftrack.com")
+	flag.Parse()
 
 	session, err := ftrack.NewSession(ftrack.SessionConfig{
 		ApiKey:    *apiKey,
