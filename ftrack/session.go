@@ -16,16 +16,34 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
-const EncodeDatetimeFormat string = "YYYY-MM-DDTHH:mm:ss"
+const (
+	EncodeDatetimeFormat string = "YYYY-MM-DDTHH:mm:ss"
+	ServerLocationId     string = "3a372bde-05bc-11e4-8908-20c9d081909b"
+	DefaultApiEndpoint   string = "/api"
+	EntityTypeKey        string = "__entity_type__"
+)
 
-const ServerLocationId string = "3a372bde-05bc-11e4-8908-20c9d081909b"
+var (
+	once      sync.Once
+	netClient *http.Client
+)
 
-const DefaultApiEndpoint string = "/api"
-
-const EntityTypeKey string = "__entity_type__"
+func newNetClient(timeout time.Duration) *http.Client {
+	once.Do(func() {
+		var netTransport = &http.Transport{
+			TLSHandshakeTimeout: 2 * time.Second,
+		}
+		netClient = &http.Client{
+			Timeout:   timeout,
+			Transport: netTransport,
+		}
+	})
+	return netClient
+}
 
 type Session struct {
 	ServerUrl         string
@@ -521,7 +539,7 @@ func (session *Session) CreateComponent(fileName string, options CreateComponent
 	}
 	result = append(result, results[0].(CreateResult))
 	result = append(result, results[1].(CreateResult))
-	client := http.Client{
+	client := http.Client{ // TODO: Use singleton?
 		// TODO: Needed? Timeout: session.Timeout,
 	}
 	request, err := http.NewRequest(
@@ -598,9 +616,6 @@ func (session *Session) call(operations ...interface{}) ([]byte, error) {
 		return nil, err
 	}
 
-	client := http.Client{
-		Timeout: session.Timeout,
-	}
 	request, err := http.NewRequest("POST", url, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, err
@@ -611,7 +626,7 @@ func (session *Session) call(operations ...interface{}) ([]byte, error) {
 	request.Header.Set("ftrack-user", session.ApiUser)
 	request.Header.Set("ftrack-Clienttoken", session.ClientToken)
 
-	resp, err := client.Do(request)
+	resp, err := newNetClient(session.Timeout).Do(request)
 	if err != nil {
 		return nil, err
 	}
