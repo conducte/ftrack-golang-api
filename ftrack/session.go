@@ -9,7 +9,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -562,14 +561,19 @@ func (session *Session) CreateComponent(fileName string, options CreateComponent
 		request.Header.Set(k, v)
 	}
 	response, err := client.Do(request)
+	if err == nil {
+		defer response.Body.Close()
+	}
+	// TODO: add UploadError type?
 	var uploadError = err
 	if err == nil && response.StatusCode != http.StatusOK {
+		text := response.Status
 		body, err := ioutil.ReadAll(response.Body)
 		if err == nil {
-			defer response.Body.Close()
-			log.Printf("%s\n%s\n", response.Status, string(body))
+			text += "\n"
+			text += string(body)
 		}
-		uploadError = errors.New(response.Status)
+		uploadError = errors.New(text)
 	}
 	if uploadError != nil {
 		_, _ = session.Call(
@@ -630,7 +634,7 @@ func (session *Session) call(operations ...interface{}) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = resp.Body.Close() }()
+	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
